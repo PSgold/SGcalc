@@ -1,0 +1,2 @@
+# SGcalc
+A simple calculator
