@@ -9,13 +9,36 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 enum mathOperators { null, add, subtract, multiply, divide, equals };
 HWND editCtrl;
+struct controls {
+	HWND button0;
+	HWND button1;
+	HWND button2;
+	HWND button3;
+	HWND button4;
+	HWND button5;
+	HWND button6;
+	HWND button7;
+	HWND button8;
+	HWND button9;
+	HWND buttonPlus;
+	HWND buttonMinus;
+	HWND buttonDivide;
+	HWND buttonMultiply;
+	HWND buttonEquals;
+	HWND buttonDot;
+	HWND buttonClr;
+	HWND buttonBck;
+};
+controls control;
 
 void getResolution(unsigned short &horizontal, unsigned short &vertical);
-void addButtonControl(HWND);
-void addEditControl(HWND);
+void addButtonControl(HWND, RECT&);
+void addEditControl(HWND,RECT&);
+void moveControls(RECT&);
 void wmCommand(WPARAM);
 void wmKDown(WPARAM);
 char getNewChar(WPARAM);
@@ -26,6 +49,7 @@ bool checkDecimal(wchar_t*, short);
 void clearStr(char*, short);
 void clearStr(wchar_t*, short);
 void wStrToWchart(std::wstring, wchar_t*, short);
+//void writeFile(RECT&,bool);
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -52,7 +76,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 		0,                              // Optional window styles
 		CLASS_NAME,                     // Window class
 		L"",                    // Window text (Changed from "Learn to Program  Windows")
-		WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX|WS_VISIBLE,            // Window style
+		WS_CAPTION | WS_SYSMENU |WS_SIZEBOX| WS_MINIMIZEBOX | WS_MAXIMIZEBOX|WS_VISIBLE,            // Window style
 
 		// Size and position
 		hStart, vStart, 210, 278,
@@ -68,6 +92,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 		return 0;
 	}
 
+	//bool startAppend{ 0 };
+	RECT mainWindow;
+	GetClientRect(hwnd, &mainWindow);
+	//writeFile(mainWindow,startAppend);
+
 	ShowWindow(hwnd, nCmdShow);
 
 	// Run the message loop.
@@ -82,6 +111,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+
 	switch (uMsg) {
 
 	case WM_PAINT: {
@@ -90,7 +120,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 
 
-		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_ACTIVECAPTION + 1));
+		FillRect(hdc, &ps.rcPaint, reinterpret_cast<HBRUSH>(COLOR_ACTIVECAPTION + 1));
 
 		EndPaint(hwnd, &ps);
 	} return 0;
@@ -121,15 +151,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	} return 0;
 
 	case WM_KEYDOWN: wmKDown(wParam); return 0;
-
+	
+	case WM_SIZING: {
+		//bool startAppend{ 1 };
+		RECT mainWindow;
+		GetClientRect(hwnd, &mainWindow);
+		moveControls(mainWindow);
+		//writeFile(mainWindow,startAppend);
+	} return 0;
 
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
 
 	case WM_CREATE: {
-		addButtonControl(hwnd);
-		addEditControl(hwnd);
+		RECT mainWindow;
+		GetClientRect(hwnd, &mainWindow);
+		addButtonControl(hwnd,mainWindow);
+		addEditControl(hwnd,mainWindow);
 	} return 0;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -143,7 +182,7 @@ void getResolution(unsigned short &horizontal, unsigned short &vertical) {
 	vertical = desktop.bottom;
 }
 
-void addButtonControl(HWND hwnd) {
+void addButtonControl(HWND hwnd, RECT& mainWindow) {
 	struct handleID {
 		const short button0{ 0 };
 		const short button1{ 1 };
@@ -164,34 +203,72 @@ void addButtonControl(HWND hwnd) {
 		const char buttonClr{ 'c' };//clear
 		const char buttonBck{ '<' };
 	};
-
+	
 	handleID buttonIDs;
+	double firstX{ 1.0 };
+	double firstY{ 2.0 };
+	double X{ (mainWindow.right / 5.5) };
+	double Y{ (mainWindow.bottom / 6.7) };
+	double Y2{ mainWindow.bottom / 6.0 };
+	double X2{ mainWindow.right / 4.85 };
+	double xratio{};
 
-	CreateWindowEx(0, L"Button", L"C", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, 1, 35, 35, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonClr), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"<-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 36, 1, 35, 35, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonBck), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"7", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, 46, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button7), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"8", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 46, 46, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button8), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"9", BS_FLAT | WS_CHILD | WS_VISIBLE, 90, 46, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button9), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"4", BS_FLAT | WS_CHILD | WS_VISIBLE, 1, 91, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button4), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"5", BS_FLAT | WS_CHILD | WS_VISIBLE, 46, 91, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button5), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"6", BS_FLAT | WS_CHILD | WS_VISIBLE, 90, 91, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button6), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"1", BS_FLAT | WS_CHILD | WS_VISIBLE, 1, 136, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button1), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"2", BS_FLAT | WS_CHILD | WS_VISIBLE, 46, 136, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button2), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"3", BS_FLAT | WS_CHILD | WS_VISIBLE, 90, 136, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button3), NULL, NULL);
-	CreateWindowEx(0, L"Button", L".", BS_FLAT | WS_CHILD | WS_VISIBLE, 1, 181, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonDot), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"0", BS_FLAT | WS_CHILD | WS_VISIBLE, 46, 181, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.button0), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"=", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 90, 181, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonEquals), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"/", BS_FLAT | WS_CHILD | WS_VISIBLE, 134, 46, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonDivide), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"x", BS_FLAT | WS_CHILD | WS_VISIBLE, 134, 91, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonMultiply), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 134, 136, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonMinus), NULL, NULL);
-	CreateWindowEx(0, L"Button", L"+", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 134, 181, 40, 40, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonPlus), NULL, NULL);
+	control.buttonClr = CreateWindowEx(0, L"Button", L"C", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, 1, X, Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonClr), NULL, NULL);
+	control.buttonBck = CreateWindowEx(0, L"Button", L"<-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X+1), 1, X, Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonBck), NULL, NULL);
+	control.button7 = CreateWindowEx(0, L"Button", L"7", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button7), NULL, NULL);
+	control.button8 = CreateWindowEx(0, L"Button", L"8", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2+8), (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button8), NULL, NULL);
+	control.button9 = CreateWindowEx(0, L"Button", L"9", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2+X2+16), (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button9), NULL, NULL);
+	control.button4 = CreateWindowEx(0, L"Button", L"4", BS_FLAT | WS_CHILD | WS_VISIBLE, 1, (Y+Y2+16), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button4), NULL, NULL);
+	control.button5 = CreateWindowEx(0, L"Button", L"5", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + 8), (Y + Y2 + 16), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button5), NULL, NULL);
+	control.button6 = CreateWindowEx(0, L"Button", L"6", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + X2 + 16), (Y + Y2 + 16), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button6), NULL, NULL);
+	control.button1 = CreateWindowEx(0, L"Button", L"1", BS_FLAT | WS_CHILD | WS_VISIBLE, 1, (Y + Y2 + Y2 + 21), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button1), NULL, NULL);
+	control.button2 = CreateWindowEx(0, L"Button", L"2", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + 8), (Y + Y2 + Y2 + 21), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button2), NULL, NULL);
+	control.button3 = CreateWindowEx(0, L"Button", L"3", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + X2 + 16), (Y + Y2 + Y2 + 21), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button3), NULL, NULL);
+	control.buttonDot = CreateWindowEx(0, L"Button", L".", BS_FLAT | WS_CHILD | WS_VISIBLE, 1, (Y + Y2 + Y2 + Y2 + 26), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonDot), NULL, NULL);
+	control.button0 = CreateWindowEx(0, L"Button", L"0", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + 8), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button0), NULL, NULL);
+	control.buttonEquals = CreateWindowEx(0, L"Button", L"=", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2 + X2 + 16), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonEquals), NULL, NULL);
+	control.buttonDivide = CreateWindowEx(0, L"Button", L"/", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + X2 + X2 + 24), (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonDivide), NULL, NULL);
+	control.buttonMultiply = CreateWindowEx(0, L"Button", L"x", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2 + X2 + X2 + 24), (Y + Y2 + 16), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonMultiply), NULL, NULL);
+	control.buttonMinus = CreateWindowEx(0, L"Button", L"-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + 21), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonMinus), NULL, NULL);
+	control.buttonPlus = CreateWindowEx(0, L"Button", L"+", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonPlus), NULL, NULL);
 }
-void addEditControl(HWND hwnd) {
+void addEditControl(HWND hwnd, RECT& mainWindow) {
+	double X{ (mainWindow.right / 5.5) };
+	double Y{ (mainWindow.bottom / 6.7) };
+	double XeditControl{ X * 3.5 };
 	wchar_t text[]{ L"0" };
 	editCtrl = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", text,
 		WS_CHILD | WS_VISIBLE | ES_RIGHT | ES_READONLY,
-		73, 1, 120, 35, hwnd, NULL, NULL, NULL);
+		(X + X + 2), 1, XeditControl, Y, hwnd, NULL, NULL, NULL);
 	//CreateWindowEx(0, L"Static", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 1, 1, 280, 55, hwnd, NULL, NULL, NULL);
+}
+
+void moveControls(RECT& mainWindow) {
+	double X{ (mainWindow.right / 5.5) };
+	double Y{ (mainWindow.bottom / 6.7) };
+	double Y2{ mainWindow.bottom / 6.0 };
+	double X2{ mainWindow.right / 4.85 };
+	double XeditControl{ X * 3.5 };
+
+	MoveWindow(control.buttonClr, 1, 1, X, Y, 1);
+	MoveWindow(control.buttonBck, (X + 1), 1, X, Y, 1);
+	MoveWindow(control.button7, 1, (Y + 11), X2, Y2, 1);
+	MoveWindow(control.button8, (X2 + 8), (Y + 11), X2, Y2, 1);
+	MoveWindow(control.button9, (X2 + X2 + 16), (Y + 11), X2, Y2, 1);
+	MoveWindow(control.button4, 1, (Y + Y2 + 16), X2, Y2, 1);
+	MoveWindow(control.button5, (X2 + 8), (Y + Y2 + 16), X2, Y2, 1);
+	MoveWindow(control.button6, (X2 + X2 + 16), (Y + Y2 + 16), X2, Y2, 1);
+	MoveWindow(control.button1, 1, (Y + Y2 + Y2 + 21), X2, Y2, 1);
+	MoveWindow(control.button2, (X2 + 8), (Y + Y2 + Y2 + 21), X2, Y2, 1);
+	MoveWindow(control.button3, (X2 + X2 + 16), (Y + Y2 + Y2 + 21), X2, Y2, 1);
+	MoveWindow(control.buttonDot, 1, (Y + Y2 + Y2 + Y2 + 26), X2, Y2, 1);
+	MoveWindow(control.button0, (X2 + 8), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, 1);
+	MoveWindow(control.buttonEquals, (X2 + X2 + 16), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, 1);
+	MoveWindow(control.buttonDivide, (X2 + X2 + X2 + 24), (Y+11), X2, Y2, 1);
+	MoveWindow(control.buttonMultiply, (X2 + X2 + X2 + 24), (Y + Y2 + 16), X2, Y2, 1);
+	MoveWindow(control.buttonMinus, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + 21), X2, Y2, 1);
+	MoveWindow(control.buttonPlus, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, 1);
+	MoveWindow(editCtrl,(X+X+2),1,XeditControl,Y,1);
 }
 
 void wmCommand(WPARAM wParam) {
@@ -426,3 +503,20 @@ void wStrToWchart(std::wstring str, wchar_t* charArray, short charArraySize) {
 		}
 	}
 }
+
+//void writeFile(RECT& rect, bool startAppend) {
+//	if (startAppend) {
+//		std::string file{ "log.txt" };
+//		std::fstream fileStream{ file,std::ios::app };
+//		fileStream << rect.left << " ; " << rect.top << " ; " << rect.right << " ; "
+//			<< rect.bottom << std::endl;
+//		fileStream.close();
+//	}
+//	else {
+//		std::string file{ "log.txt" };
+//		std::ofstream fileStream{ file };
+//		fileStream << rect.left << " ; " << rect.top << " ; " << rect.right << " ; "
+//			<< rect.bottom << std::endl;
+//		fileStream.close();
+//	}
+//}
