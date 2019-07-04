@@ -92,11 +92,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 		return 0;
 	}
 
-	//bool startAppend{ 0 };
-	RECT mainWindow;
-	GetClientRect(hwnd, &mainWindow);
-	//writeFile(mainWindow,startAppend);
-
 	ShowWindow(hwnd, nCmdShow);
 
 	// Run the message loop.
@@ -153,11 +148,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	case WM_KEYDOWN: wmKDown(wParam); return 0;
 	
 	case WM_SIZING: {
-		//bool startAppend{ 1 };
 		RECT mainWindow;
 		GetClientRect(hwnd, &mainWindow);
 		moveControls(mainWindow);
-		//writeFile(mainWindow,startAppend);
+	} return 0;
+
+	case WM_SIZE: {
+		RECT mainWindow;
+		GetClientRect(hwnd, &mainWindow);
+		moveControls(mainWindow);
 	} return 0;
 
 	case WM_DESTROY:
