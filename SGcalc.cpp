@@ -112,11 +112,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
-
-
-
 		FillRect(hdc, &ps.rcPaint, reinterpret_cast<HBRUSH>(COLOR_ACTIVECAPTION + 1));
-
 		EndPaint(hwnd, &ps);
 	} return 0;
 
@@ -141,6 +137,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			wParam == '<'
 			) {
 			wmCommand(wParam);
+			SetFocus(hwnd);
 		}
 
 	} return 0;
@@ -204,13 +201,11 @@ void addButtonControl(HWND hwnd, RECT& mainWindow) {
 	};
 	
 	handleID buttonIDs;
-	double firstX{ 1.0 };
-	double firstY{ 2.0 };
+
 	double X{ (mainWindow.right / 5.5) };
 	double Y{ (mainWindow.bottom / 6.7) };
 	double Y2{ mainWindow.bottom / 6.0 };
 	double X2{ mainWindow.right / 4.85 };
-	double xratio{};
 
 	control.buttonClr = CreateWindowEx(0, L"Button", L"C", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, 1, X, Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonClr), NULL, NULL);
 	control.buttonBck = CreateWindowEx(0, L"Button", L"<-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X+1), 1, X, Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonBck), NULL, NULL);
