@@ -79,7 +79,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 		WS_CAPTION | WS_SYSMENU |WS_SIZEBOX| WS_MINIMIZEBOX | WS_MAXIMIZEBOX|WS_VISIBLE,            // Window style
 
 		// Size and position
-		hStart, vStart, 210, 278,
+		hStart, vStart, 250, 290,
 
 		NULL,       // Parent window    
 		NULL,       // Menu
@@ -108,6 +108,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 	switch (uMsg) {
+
+	case WM_CREATE: {
+		RECT mainWindow;
+		GetClientRect(hwnd, &mainWindow);
+		addButtonControl(hwnd, mainWindow);
+		addEditControl(hwnd, mainWindow);
+	} return 0;
 
 	case WM_PAINT: {
 		PAINTSTRUCT ps;
@@ -159,13 +166,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-
-	case WM_CREATE: {
-		RECT mainWindow;
-		GetClientRect(hwnd, &mainWindow);
-		addButtonControl(hwnd,mainWindow);
-		addEditControl(hwnd,mainWindow);
-	} return 0;
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -202,13 +202,12 @@ void addButtonControl(HWND hwnd, RECT& mainWindow) {
 	
 	handleID buttonIDs;
 
-	double X{ (mainWindow.right / 5.5) };
 	double Y{ (mainWindow.bottom / 6.7) };
-	double Y2{ mainWindow.bottom / 6.0 };
-	double X2{ mainWindow.right / 4.85 };
+	double Y2{ mainWindow.bottom / 5.5 };
+	double X2{ mainWindow.right / 4.5 };
 
-	control.buttonClr = CreateWindowEx(0, L"Button", L"C", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, 1, X, Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonClr), NULL, NULL);
-	control.buttonBck = CreateWindowEx(0, L"Button", L"<-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X+1), 1, X, Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonBck), NULL, NULL);
+	control.buttonClr = CreateWindowEx(0, L"Button", L"C", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, 1, (X2 / 1.3), Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonClr), NULL, NULL);
+	control.buttonBck = CreateWindowEx(0, L"Button", L"<-", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2 / 1.3 + 1), 1, (X2 / 1.3), Y, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonBck), NULL, NULL);
 	control.button7 = CreateWindowEx(0, L"Button", L"7", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 1, (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button7), NULL, NULL);
 	control.button8 = CreateWindowEx(0, L"Button", L"8", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2+8), (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button8), NULL, NULL);
 	control.button9 = CreateWindowEx(0, L"Button", L"9", BS_FLAT | WS_CHILD | WS_VISIBLE, (X2+X2+16), (Y+11), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.button9), NULL, NULL);
@@ -227,25 +226,25 @@ void addButtonControl(HWND hwnd, RECT& mainWindow) {
 	control.buttonPlus = CreateWindowEx(0, L"Button", L"+", BS_FLAT | WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, hwnd, reinterpret_cast<HMENU>(buttonIDs.buttonPlus), NULL, NULL);
 }
 void addEditControl(HWND hwnd, RECT& mainWindow) {
-	double X{ (mainWindow.right / 5.5) };
 	double Y{ (mainWindow.bottom / 6.7) };
-	double XeditControl{ X * 3.5 };
+	double Y2{ mainWindow.bottom / 5.5 };
+	double X2{ mainWindow.right / 4.5 };
+	double XeditControl{ (X2 + X2 + X2 + X2 + 24) - ((X2 / 1.3 + 1) + (X2 / 1.3)) };
 	wchar_t text[]{ L"0" };
 	editCtrl = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", text,
 		WS_CHILD | WS_VISIBLE | ES_RIGHT | ES_READONLY,
-		(X + X + 2), 1, XeditControl, Y, hwnd, NULL, NULL, NULL);
+		((X2 / 1.3) + 1 + (X2 / 1.3)), 1, XeditControl, Y, hwnd, NULL, NULL, NULL);
 	//CreateWindowEx(0, L"Static", L"", WS_CHILD | WS_VISIBLE | WS_BORDER, 1, 1, 280, 55, hwnd, NULL, NULL, NULL);
 }
 
 void moveControls(RECT& mainWindow) {
-	double X{ (mainWindow.right / 5.5) };
 	double Y{ (mainWindow.bottom / 6.7) };
-	double Y2{ mainWindow.bottom / 6.0 };
-	double X2{ mainWindow.right / 4.85 };
-	double XeditControl{ X * 3.5 };
+	double Y2{ mainWindow.bottom / 5.5 };
+	double X2{ mainWindow.right / 4.5 };
+	double XeditControl{ (X2 + X2 + X2 + X2 + 24) - ((X2/1.3+1)+(X2/1.3)) };
 
-	MoveWindow(control.buttonClr, 1, 1, X, Y, 1);
-	MoveWindow(control.buttonBck, (X + 1), 1, X, Y, 1);
+	MoveWindow(control.buttonClr, 1, 1, (X2/1.3), Y, 1);
+	MoveWindow(control.buttonBck, (X2/1.3 + 1), 1, (X2/1.3), Y, 1);
 	MoveWindow(control.button7, 1, (Y + 11), X2, Y2, 1);
 	MoveWindow(control.button8, (X2 + 8), (Y + 11), X2, Y2, 1);
 	MoveWindow(control.button9, (X2 + X2 + 16), (Y + 11), X2, Y2, 1);
@@ -262,7 +261,7 @@ void moveControls(RECT& mainWindow) {
 	MoveWindow(control.buttonMultiply, (X2 + X2 + X2 + 24), (Y + Y2 + 16), X2, Y2, 1);
 	MoveWindow(control.buttonMinus, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + 21), X2, Y2, 1);
 	MoveWindow(control.buttonPlus, (X2 + X2 + X2 + 24), (Y + Y2 + Y2 + Y2 + 26), X2, Y2, 1);
-	MoveWindow(editCtrl,(X+X+2),1,XeditControl,Y,1);
+	MoveWindow(editCtrl, ((X2 / 1.3) + 1 + (X2 / 1.3)),1,XeditControl,Y,1);
 }
 
 void wmCommand(WPARAM wParam) {
